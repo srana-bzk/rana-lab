@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rana Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+[hidden]{display:none!important}
+body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* Layout: a lab console. Slim header, a library of resource cards, and a reader with a docked control bar and one bright "now reading" highlight. */
+:root{
+  --bg:#EEF2F6; --panel:#FFFFFF; --panel-2:#E3E9F0; --line:#C9D3DE;
+  --fg:#0E1726; --muted:#4A5A6E; --accent:#0A7489; --accent-ink:#FFFFFF;
+  --glow:rgba(10,116,137,.18); --hi:#FFD96A; --hi-ink:#0E1726; --tag:#E0F2F5;
+  --grid:rgba(14,23,38,.05);
+  --display:"Chakra Petch","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible",Verdana,"Segoe UI",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --read-size:19px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1120; --panel:#111B2E; --panel-2:#17243B; --line:#25344F;
+  --fg:#E6EDF7; --muted:#93A3BA; --accent:#4FD1E8; --accent-ink:#04212A;
+  --glow:rgba(79,209,232,.22); --hi:#F2B544; --hi-ink:#121212; --tag:#0F2E3A;
+  --grid:rgba(79,209,232,.06); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0A1120; --panel:#111B2E; --panel-2:#17243B; --line:#25344F;
+  --fg:#E6EDF7; --muted:#93A3BA; --accent:#4FD1E8; --accent-ink:#04212A;
+  --glow:rgba(79,209,232,.22); --hi:#F2B544; --hi-ink:#121212; --tag:#0F2E3A;
+  --grid:rgba(79,209,232,.06); color-scheme:dark }
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.55;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:32px 32px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--panel)}
+a{color:var(--accent)}
+button,select,input{font:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--panel);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-block:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--fg)}
+.mark{width:34px;height:34px;border-radius:8px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink);font-family:var(--mono);font-weight:600;font-size:15px;box-shadow:0 0 0 4px var(--glow)}
+.brand b{font-family:var(--display);font-size:20px;letter-spacing:.04em}
+.brand small{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.nav{margin-left:auto;display:flex;gap:6px}
+.nav a{font-family:var(--mono);font-size:13px;text-decoration:none;color:var(--muted);padding:6px 10px;border-radius:6px;letter-spacing:.06em}
+.nav a[aria-current="page"]{color:var(--fg);background:var(--panel-2)}
+
+/* library */
+.hero{padding-block:40px 18px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,6vw,54px);line-height:1.05;margin:.25em 0 .3em;text-wrap:balance;max-width:16ch}
+.hero p{max-width:60ch;color:var(--muted);margin:0}
+.status{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.chip{font-family:var(--mono);font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--muted)}
+.chip i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:6px;box-shadow:0 0 8px var(--accent);font-style:normal}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-block:22px 14px}
+.filters button{border:1px solid var(--line);background:var(--panel);color:var(--fg);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:var(--mono);font-size:13px}
+.filters button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding-bottom:48px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card .meta{display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:5px;background:var(--tag);color:var(--accent)}
+.tag.soon{background:var(--panel-2);color:var(--muted)}
+.card h2{font-family:var(--display);font-size:22px;margin:0;line-height:1.2}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.card .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:6px}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:8px;padding:9px 14px;font-weight:700;font-size:15px;text-decoration:none;cursor:pointer;border:1px solid var(--line);background:var(--panel-2);color:var(--fg)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn[aria-disabled="true"]{opacity:.55;pointer-events:none}
+.btn svg{width:18px;height:18px}
+
+/* reader */
+.bar{position:sticky;top:calc(env(safe-area-inset-top,0px) + 59px);z-index:4;background:var(--panel);border:1px solid var(--line);border-radius:12px;margin-block:16px;padding:10px 12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;box-shadow:0 8px 24px -16px var(--glow)}
+.bar .group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.icon{width:44px;height:44px;border-radius:10px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg);display:grid;place-items:center;cursor:pointer}
+.icon svg{width:20px;height:20px}
+.play{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);width:auto;padding:0 18px;display:flex;gap:8px;font-weight:700}
+.bar label{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.06em}
+.bar select{max-width:200px;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--fg)}
+.bar input[type=range]{width:110px;accent-color:var(--accent)}
+.readout{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
+.note{font-size:14px;color:var(--muted);margin:0 0 10px}
+.doc{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:clamp(18px,4vw,40px);margin-bottom:56px;font-size:var(--read-size);line-height:1.7}
+.doc-inner{max-width:68ch;margin:0 auto}
+.doc h1{font-family:var(--display);font-size:1.7em;line-height:1.15;margin:0 0 .2em;text-wrap:balance}
+.doc .sub{font-family:var(--mono);font-size:.62em;color:var(--accent);letter-spacing:.1em;text-transform:uppercase}
+.doc h2{font-family:var(--display);font-size:1.25em;margin:1.6em 0 .5em;padding-bottom:.25em;border-bottom:2px solid var(--line);text-wrap:balance}
+.doc h3{font-size:1em;margin:1.2em 0 .4em}
+.doc p,.doc li{margin:.4em 0}
+.doc .callout{background:var(--panel-2);border-radius:10px;padding:14px 18px;margin:1em 0}
+.tw{overflow-x:auto;margin:.8em 0}
+.doc table{border-collapse:collapse;width:100%;font-size:.86em;min-width:520px}
+.doc th,.doc td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+.doc th{background:var(--panel-2);font-family:var(--mono);font-size:.82em;letter-spacing:.04em}
+.s{border-radius:4px;cursor:pointer;transition:background-color .15s}
+.s:hover{background:var(--glow)}
+.s.now{background:var(--hi);color:var(--hi-ink);box-shadow:0 0 0 3px var(--hi)}
+.q{margin:1.1em 0}
+.q b{font-family:var(--mono);color:var(--accent)}
+.opts{list-style:none;padding-left:1.2em}
+@media (max-width:640px){.readout{margin-left:0;width:100%}.bar{position:static}.nav{margin-left:0}}
+@media (prefers-reduced-motion:reduce){.s{transition:none}}
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#library"><span class="mark">&gt;_</span><span><b>RANA LAB</b><small>Room 250 · White Hall MS</small></span></a>
+    <nav class="nav" aria-label="Main"><a href="#library" id="nav-lib">Library</a><a href="#guide-os" id="nav-read">Reader</a></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="view-library">
+    <div class="hero">
+      <div class="eyebrow">Mr. Rana · Computer Science</div>
+      <h1>Study smarter. Listen if you want to.</h1>
+      <p>Every study guide, practice set, and syllabus for Intro to Computer Science and Tools for Learning. Open any guide and press Read to me: it reads out loud and highlights each sentence as it goes.</p>
+      <div class="status"><span class="chip"><i></i>Next quiz: Thu, Oct 22 · Software and OS</span><span class="chip">Read aloud on every guide</span></div>
+    </div>
+    <div class="filters" role="group" aria-label="Filter by class">
+      <button type="button" id="f-all" data-f="all" aria-pressed="true">All</button>
+      <button type="button" id="f-cs" data-f="cs" aria-pressed="false">Intro to CS</button>
+      <button type="button" id="f-tfl" data-f="tfl" aria-pressed="false">Tools for Learning</button>
+    </div>
+    <div class="grid" id="grid">
+      <article class="card" data-c="cs">
+        <div class="meta"><span class="tag">Intro to CS</span><span class="tag">Study guide</span></div>
+        <h2>Software and Operating Systems</h2>
+        <p>System vs. application software, drivers, utilities, the 4 jobs of an OS, and common operating systems. Covers everything on Thursday's quiz.</p>
+        <div class="actions">
+          <a class="btn primary" href="#guide-os"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>Read to me</a>
+          <a class="btn" href="Software_OS_Study_Guide.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 21h16"/></svg>PDF</a>
+        </div>
+      </article>
+      <article class="card" data-c="cs">
+        <div class="meta"><span class="tag">Intro to CS</span><span class="tag soon">Coming soon</span></div>
+        <h2>Python Practice Lab</h2>
+        <p>Write and run Python right in your browser. No install, no account.</p>
+        <div class="actions"><span class="btn" aria-disabled="true">Opening soon</span></div>
+      </article>
+      <article class="card" data-c="tfl">
+        <div class="meta"><span class="tag">Tools for Learning</span><span class="tag soon">Coming soon</span></div>
+        <h2>Tech Support Help Tickets</h2>
+        <p>Troubleshooting practice: find the clue, the cause, and the fix for 8 real computer problems.</p>
+        <div class="actions"><span class="btn" aria-disabled="true">Opening soon</span></div>
+      </article>
+      <article class="card" data-c="cs tfl">
+        <div class="meta"><span class="tag">Both classes</span><span class="tag soon">Coming soon</span></div>
+        <h2>Syllabus and Class Rules</h2>
+        <p>Grading, late work, voice levels, and what to bring to Room 250.</p>
+        <div class="actions"><span class="btn" aria-disabled="true">Opening soon</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section id="view-reader" hidden>
+    <div class="bar" role="toolbar" aria-label="Read aloud controls">
+      <div class="group">
+        <button class="icon" type="button" id="b-prev" aria-label="Previous sentence"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zM20 6v12L9 12z"/></svg></button>
+        <button class="icon play" type="button" id="b-play"><svg viewBox="0 0 24 24" fill="currentColor" id="ic-play"><path d="M7 5v14l12-7z"/></svg><span id="t-play">Read to me</span></button>
+        <button class="icon" type="button" id="b-next" aria-label="Next sentence"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 6h2v12h-2zM4 6v12l11-6z"/></svg></button>
+        <button class="icon" type="button" id="b-stop" aria-label="Stop and go back to the start"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg></button>
+      </div>
+      <div class="group"><label for="r-speed">Speed</label><input type="range" id="r-speed" min="0.6" max="1.5" step="0.1" value="0.9"><span class="readout" id="speed-out" style="margin-left:0">0.9x</span></div>
+      <div class="group"><label for="s-voice">Voice</label><select id="s-voice"><option>Default voice</option></select></div>
+      <div class="group"><button class="icon" type="button" id="b-smaller" aria-label="Smaller text">A-</button><button class="icon" type="button" id="b-bigger" aria-label="Bigger text">A+</button></div>
+      <span class="readout" id="pos" aria-live="polite">Sentence 0 of 0</span>
+    </div>
+    <p class="note">Tip: click any sentence to start reading from there.</p>
+
+    <article class="doc" id="doc"><div class="doc-inner">
+      <h1>Study Guide: Software and Operating Systems</h1>
+      <div class="sub">Intro to Computer Science · Quiz: Thursday, October 22</div>
+      <div class="callout"><p>The quiz covers everything on this study guide, and nothing else. It has 4 short real-life stories, 50 points total, plus a 10 point bonus. Read the story, find the clue, and pick the best answer. No notes.</p></div>
+
+      <h2>1. Hardware vs. Software</h2>
+      <p>Hardware is the parts you can touch, like RAM, a mouse, or a monitor. Software is the instructions that make hardware do stuff, like Chrome, Windows, or Minecraft.</p>
+      <p>Quick test: can you touch it? Then it's hardware. Hardware is what the computer is. Software is what it does.</p>
+
+      <h2>2. The Two Teams of Software</h2>
+      <div class="tw"><table>
+        <tr><th></th><th>System software</th><th>Application software (apps)</th></tr>
+        <tr><th>What it does</th><td>Runs and manages the computer, in the background.</td><td>Helps you do a specific task.</td></tr>
+        <tr><th>Ask yourself</th><td>Does it serve the computer?</td><td>Does it serve me?</td></tr>
+        <tr><th>Examples</th><td>Operating systems, drivers, and utilities.</td><td>Chrome, YouTube, Minecraft, Google Docs, Spotify, and Calculator.</td></tr>
+        <tr><th>School match</th><td>The principal and office staff.</td><td>Your classes, like art, PE, and CS.</td></tr>
+      </table></div>
+      <h3>The system software crew</h3>
+      <div class="tw"><table>
+        <tr><th></th><th>What it does</th><th>Examples</th><th>School match</th></tr>
+        <tr><th>Operating system</th><td>The computer's manager. It connects you, your apps, and the hardware.</td><td>Windows, macOS, Android, iOS, and Linux.</td><td>The principal.</td></tr>
+        <tr><th>Device driver</th><td>The translator. It helps the operating system talk to one piece of hardware.</td><td>A printer driver, keyboard driver, or graphics card driver.</td><td>An interpreter.</td></tr>
+        <tr><th>Utility</th><td>The cleanup and security team. It keeps the computer healthy.</td><td>Antivirus, Disk Cleanup, and backup tools.</td><td>Custodians and security.</td></tr>
+      </table></div>
+      <p>Remember: a new printer or device won't work? Check the driver. Apps need an operating system to run. No operating system means nothing works.</p>
+
+      <h2>3. The Operating System's 4 Jobs</h2>
+      <p>You ask. The operating system coordinates. The hardware does it.</p>
+      <div class="tw"><table>
+        <tr><th>Job</th><th>What the OS does</th><th>School match</th><th>Real-life example</th></tr>
+        <tr><th>1. Manage hardware</th><td>Decides who gets to use the CPU, RAM, storage, printer, and screen, and shares them fairly.</td><td>Assigning rooms and equipment.</td><td>Sending your essay to the printer.</td></tr>
+        <tr><th>2. User interface</th><td>Gives you a way to talk to the computer. A GUI means clicking icons and menus. A CLI means typing commands.</td><td>The front desk.</td><td>Clicking the Chrome icon.</td></tr>
+        <tr><th>3. Manage files</th><td>Creates, saves, names, moves, finds, and protects your files and folders.</td><td>The records office.</td><td>Saving your essay in a folder, or renaming a photo.</td></tr>
+        <tr><th>4. Manage programs</th><td>Loads apps into RAM and shares CPU time so many apps can run at once.</td><td>The bell schedule.</td><td>Spotify playing while you play a game.</td></tr>
+      </table></div>
+      <h3>What happens when you open an app?</h3>
+      <ol>
+        <li>You click it. That is the user interface.</li>
+        <li>The operating system finds the program. That is managing files.</li>
+        <li>The operating system loads it into RAM. That is managing programs.</li>
+        <li>The CPU runs it. That is managing hardware.</li>
+        <li>You see it on the screen. That is the user interface again.</li>
+      </ol>
+      <p>Four jobs, one click, and less than one second.</p>
+
+      <h2>4. Common Operating Systems</h2>
+      <p>Every operating system does the same 4 jobs, just on different devices.</p>
+      <div class="tw"><table>
+        <tr><th>Operating system</th><th>Device</th></tr>
+        <tr><td>Windows</td><td>Most PCs and laptops, like Dell, HP, and Lenovo.</td></tr>
+        <tr><td>macOS</td><td>Mac computers, like a MacBook or iMac.</td></tr>
+        <tr><td>iOS</td><td>iPhones.</td></tr>
+        <tr><td>Android</td><td>Samsung phones and many others.</td></tr>
+        <tr><td>Linux</td><td>Servers. Most websites run on Linux.</td></tr>
+      </table></div>
+
+      <h2>5. If You See This, Think This</h2>
+      <div class="tw"><table>
+        <tr><th>If the story says</th><th>Think</th></tr>
+        <tr><td>Can you touch it?</td><td>Yes means hardware. No means software.</td></tr>
+        <tr><td>It helps you do a task, like games, music, writing, or browsing.</td><td>Application software.</td></tr>
+        <tr><td>It works in the background to run the computer.</td><td>System software.</td></tr>
+        <tr><td>A new device is plugged in, but it doesn't work.</td><td>The driver is missing.</td></tr>
+        <tr><td>Antivirus, cleaning junk files, or backups.</td><td>A utility.</td></tr>
+        <tr><td>Clicking icons, tapping, or typing commands.</td><td>Job 2, user interface.</td></tr>
+        <tr><td>Saving, naming, moving, or finding a file.</td><td>Job 3, manage files.</td></tr>
+        <tr><td>Many apps open at once, or one app slowing the others.</td><td>Job 4, manage programs.</td></tr>
+        <tr><td>Who gets the CPU, RAM, printer, or screen.</td><td>Job 1, manage hardware.</td></tr>
+      </table></div>
+
+      <h2>Practice Questions</h2>
+      <p>Try these on your own, then check your answers with Mr. Rana. They look just like the quiz.</p>
+      <div class="q"><p><b>1.</b> Write H for hardware or S for software: Instagram, RAM, Windows 11, a mouse, and a printer driver.</p></div>
+      <div class="q"><p><b>2.</b> Leo plugs a brand new webcam into his laptop. The laptop says device not recognized. What is most likely missing?</p>
+        <ul class="opts"><li>A. More RAM.</li><li>B. The webcam's driver.</li><li>C. A new app.</li><li>D. A bigger screen.</li></ul></div>
+      <div class="q"><p><b>3.</b> Which of these are application software? Minecraft, macOS, Google Docs, antivirus, YouTube, and a printer driver.</p></div>
+      <div class="q"><p><b>4.</b> Kayla is using her laptop. Which operating system job is each action? She taps the Spotify icon. She renames a photo and moves it into a folder. Spotify keeps playing while she plays Roblox. Her essay is sent to the printer.</p></div>
+      <div class="q"><p><b>5.</b> Name the operating system for each device: an iPhone, a Samsung phone, a MacBook, and a Dell laptop.</p></div>
+      <div class="q"><p><b>6.</b> Your friend says, "I don't need an operating system. I only use apps." Is your friend right? Explain why or why not.</p></div>
+      <div class="q"><p><b>7.</b> You tap the YouTube app. Put these steps in order. The operating system loads YouTube into RAM. You tap the YouTube icon. The CPU runs YouTube's instructions. The operating system finds the YouTube program in storage. You see YouTube on your screen.</p></div>
+    </div></article>
+  </section>
+</main>
+
+<script>
+(function(){
+  var synth = window.speechSynthesis || null;
+  var views = {lib: document.getElementById('view-library'), read: document.getElementById('view-reader')};
+  function route(){
+    var h = location.hash.replace('#','');
+    var reading = h === 'guide-os';
+    views.lib.hidden = reading; views.read.hidden = !reading;
+    document.getElementById('nav-lib').setAttribute('aria-current', reading ? 'false' : 'page');
+    document.getElementById('nav-read').setAttribute('aria-current', reading ? 'page' : 'false');
+    if (!reading) stop(false);
+    window.scrollTo(0,0);
+  }
+  window.addEventListener('hashchange', route);
+
+  // filters
+  var fbtns = document.querySelectorAll('.filters button');
+  fbtns.forEach(function(b){ b.addEventListener('click', function(){
+    fbtns.forEach(function(x){ x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    var f = b.dataset.f;
+    document.querySelectorAll('#grid .card').forEach(function(c){ c.hidden = !(f === 'all' || c.dataset.c.split(' ').indexOf(f) > -1); });
+  });});
+
+  // wrap readable units into sentence spans
+  var doc = document.getElementById('doc');
+  var units = doc.querySelectorAll('h1,.sub,h2,h3,p,li,th,td');
+  var sents = [];
+  units.forEach(function(el){
+    if (el.querySelector('p,li,td,th')) return;
+    var text = el.textContent.replace(/\s+/g,' ').trim();
+    if (!text) return;
+    var parts = (el.tagName === 'P' || el.tagName === 'LI') ? (text.match(/[^.!?]+[.!?]+["')]*\s*|[^.!?]+$/g) || [text]) : [text];
+    el.textContent = '';
+    parts.forEach(function(p){
+      var t = p.trim(); if (!t) return;
+      var s = document.createElement('span'); s.className = 's'; s.textContent = t + ' ';
+      s.dataset.i = sents.length; sents.push(s); el.appendChild(s);
+    });
+  });
+
+  var idx = 0, playing = false, rate = 0.9, voice = null, token = 0;
+  var pos = document.getElementById('pos'), tPlay = document.getElementById('t-play'), icPlay = document.getElementById('ic-play');
+  function show(){
+    sents.forEach(function(s){ s.classList.remove('now'); });
+    if (sents[idx] && (playing || idx > 0)) sents[idx].classList.add('now');
+    pos.textContent = 'Sentence ' + (idx + 1) + ' of ' + sents.length;
+    tPlay.textContent = playing ? 'Pause' : (idx > 0 ? 'Resume' : 'Read to me');
+    icPlay.innerHTML = playing ? '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>' : '<path d="M7 5v14l12-7z"/>';
+  }
+  function speak(){
+    if (!synth) { tPlay.textContent = 'Read aloud not supported'; return; }
+    var my = ++token;
+    synth.cancel();
+    if (idx >= sents.length) { playing = false; idx = 0; show(); return; }
+    var el = sents[idx];
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollIntoView({block:'center', behavior: reduce ? 'auto' : 'smooth'});
+    show();
+    var u = new SpeechSynthesisUtterance(el.textContent.replace(/\bOS\b/g,'O S').replace(/\bGUI\b/g,'G U I').replace(/\bCLI\b/g,'C L I'));
+    u.rate = rate; if (voice) u.voice = voice;
+    u.onend = function(){ if (my !== token || !playing) return; idx++; speak(); };
+    u.onerror = function(){ if (my !== token) return; playing = false; show(); };
+    synth.speak(u);
+  }
+  function play(){ playing = true; speak(); }
+  function pause(){ playing = false; token++; if (synth) synth.cancel(); show(); }
+  function stop(reset){ playing = false; token++; if (synth) synth.cancel(); if (reset !== false) idx = 0; show(); }
+  document.getElementById('b-play').addEventListener('click', function(){ playing ? pause() : play(); });
+  document.getElementById('b-stop').addEventListener('click', function(){ stop(true); });
+  document.getElementById('b-next').addEventListener('click', function(){ idx = Math.min(idx + 1, sents.length - 1); playing ? speak() : show(); });
+  document.getElementById('b-prev').addEventListener('click', function(){ idx = Math.max(idx - 1, 0); playing ? speak() : show(); });
+  doc.addEventListener('click', function(e){ var s = e.target.closest('.s'); if (!s) return; idx = +s.dataset.i; play(); });
+
+  var sp = document.getElementById('r-speed'), so = document.getElementById('speed-out');
+  sp.addEventListener('input', function(){ rate = +sp.value; so.textContent = rate.toFixed(1) + 'x'; try{localStorage.setItem('rl-rate', sp.value);}catch(e){} if (playing) speak(); });
+  try { var r = localStorage.getItem('rl-rate'); if (r) { sp.value = r; rate = +r; so.textContent = rate.toFixed(1) + 'x'; } } catch(e){}
+
+  var sel = document.getElementById('s-voice'), voices = [];
+  function loadVoices(){
+    if (!synth) return;
+    voices = synth.getVoices().filter(function(v){ return /^en/i.test(v.lang); });
+    if (!voices.length) return;
+    sel.innerHTML = '';
+    voices.forEach(function(v,i){ var o = document.createElement('option'); o.value = i; o.textContent = v.name.replace(/\(.*\)/,'').trim() + ' (' + v.lang + ')'; sel.appendChild(o); });
+    var pick = voices.findIndex(function(v){ return v.lang === 'en-US' && /Samantha|Google US|Aria|Jenny/i.test(v.name); });
+    if (pick < 0) pick = voices.findIndex(function(v){ return v.lang === 'en-US'; });
+    if (pick < 0) pick = 0;
+    sel.value = pick; voice = voices[pick];
+  }
+  sel.addEventListener('change', function(){ voice = voices[+sel.value] || null; if (playing) speak(); });
+  if (synth) { loadVoices(); if ('onvoiceschanged' in synth) synth.onvoiceschanged = loadVoices; }
+
+  var size = 19;
+  function setSize(n){ size = Math.max(15, Math.min(28, n)); document.documentElement.style.setProperty('--read-size', size + 'px'); try{localStorage.setItem('rl-size', size);}catch(e){} }
+  document.getElementById('b-smaller').addEventListener('click', function(){ setSize(size - 2); });
+  document.getElementById('b-bigger').addEventListener('click', function(){ setSize(size + 2); });
+  try { var z = localStorage.getItem('rl-size'); if (z) setSize(+z); } catch(e){}
+
+  show(); route();
+})();
+</script>
+
+</body>
+</html>
